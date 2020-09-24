@@ -19,6 +19,7 @@ public class DroneController : MonoBehaviour
     private float _tiltAmountZ;
     private float _rotateAmountY;
     private float _tiltVelocity;
+    private float _rotationSpeed;
     private int _rotateDegrees = 20;
     private float _targetYRotation;
 
@@ -38,12 +39,15 @@ public class DroneController : MonoBehaviour
         if (dataManager.data != null)
         {
             motorForce = dataManager.data.enginePower;
+            _rotateDegrees = dataManager.data.maxTiltAngleXZ;
+            _rb.mass = dataManager.data.droneMass;
+            _rotationSpeed = dataManager.data.rotationSpeed;
         }
     }
 
     private void Update()
     {
-        if(Input.GetButtonDown("Windows_Gamepad0_B"))
+        if(gamepad.B.justPressed)
         {
             eventManager.QuitGame();
         }
@@ -63,7 +67,7 @@ public class DroneController : MonoBehaviour
         {
             _targetYRotation += gamepad.leftStick.horizontal;
 
-            _rotateAmountY = Mathf.SmoothDamp(_rotateAmountY, _targetYRotation, ref _tiltVelocity, 0.1f);
+            _rotateAmountY = Mathf.SmoothDamp(_rotateAmountY, _targetYRotation, ref _tiltVelocity, _rotationSpeed);
         }
 
         //force along Y motor axis
@@ -76,13 +80,13 @@ public class DroneController : MonoBehaviour
         }
 
         //idle
-        else if (Mathf.Round(gamepad.leftStick.vertical) == 0 && Mathf.Round(_rb.velocity.y) != 0 )
-        {
-            foreach (Transform motor in motors)
-            {
-                _rb.AddForceAtPosition(new Vector3(0, -Physics.gravity.y * _rb.mass/motors.Length, 0), motor.position, ForceMode.Force);
-            }
-        }
+        //else if (Mathf.Round(gamepad.leftStick.vertical) == 0 && Mathf.Round(_rb.velocity.y) != 0 )
+        //{
+        //    foreach (Transform motor in motors)
+        //    {
+        //        _rb.AddForceAtPosition(new Vector3(0, -Physics.gravity.y * _rb.mass/motors.Length, 0), motor.position, ForceMode.Force);
+        //    }
+        //}
     }
 
     private void AddThrust()
@@ -92,7 +96,7 @@ public class DroneController : MonoBehaviour
         {
             _rb.AddRelativeForce(Vector3.right * motorForce * gamepad.rightStick.horizontal);
 
-            _tiltAmountZ = Mathf.SmoothDamp(_tiltAmountZ, _rotateDegrees * gamepad.rightStick.horizontal, ref _tiltVelocity, 0.1f);
+            _tiltAmountZ = Mathf.SmoothDamp(_tiltAmountZ, _rotateDegrees * gamepad.rightStick.horizontal, ref _tiltVelocity, _rotationSpeed);
 
         }
 
@@ -101,7 +105,7 @@ public class DroneController : MonoBehaviour
         {
             _rb.AddRelativeForce(Vector3.forward * motorForce * gamepad.rightStick.vertical);
 
-            _tiltAmountX = Mathf.SmoothDamp(_tiltAmountX, _rotateDegrees * gamepad.rightStick.vertical, ref _tiltVelocity, 0.1f);
+            _tiltAmountX = Mathf.SmoothDamp(_tiltAmountX, _rotateDegrees * gamepad.rightStick.vertical, ref _tiltVelocity, _rotationSpeed);
         }
 
     }
@@ -110,12 +114,12 @@ public class DroneController : MonoBehaviour
     {
         if(gamepad.rightStick.vertical == 0)
         {
-            _tiltAmountX = Mathf.SmoothDamp(_tiltAmountX, _initialDroneRotation.x, ref _tiltVelocity, 0.1f);
+            _tiltAmountX = Mathf.SmoothDamp(_tiltAmountX, _initialDroneRotation.x, ref _tiltVelocity, _rotationSpeed);
         }
 
         if(gamepad.rightStick.horizontal == 0)
         {
-            _tiltAmountZ = Mathf.SmoothDamp(_tiltAmountZ, _initialDroneRotation.z, ref _tiltVelocity, 0.1f);
+            _tiltAmountZ = Mathf.SmoothDamp(_tiltAmountZ, _initialDroneRotation.z, ref _tiltVelocity, _rotationSpeed);
         }
 
         _transform.rotation = Quaternion.Euler(new Vector3(_tiltAmountX, _rotateAmountY, -_tiltAmountZ));

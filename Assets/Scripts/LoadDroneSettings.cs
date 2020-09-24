@@ -4,5 +4,8 @@ using UnityEngine;
 
 public class LoadDroneSettings
 {
-    public int enginePower = 50;
+    public float enginePower = 50f;
+    public float droneMass = 10f;
+    public int maxTiltAngleXZ = 20;
+    public float rotationSpeed = 0.1f;
 }
